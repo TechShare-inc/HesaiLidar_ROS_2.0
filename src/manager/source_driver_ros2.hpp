@@ -176,11 +176,13 @@ inline void SourceDriver::Stop()
 
 inline void SourceDriver::SendPacket(const UdpFrame_t& msg, double timestamp)
 {
+  // printf("SendPacket");
   pkt_pub_->publish(ToRosMsg(msg, timestamp));
 }
 
 inline void SourceDriver::SendPointCloud(const LidarDecodedFrame<LidarPointXYZIRT>& msg)
 {
+  // printf("SendPointCloud");
   pub_->publish(ToRosMsg(msg, frame_id_));
 }
 
@@ -232,12 +234,11 @@ inline sensor_msgs::msg::PointCloud2 SourceDriver::ToRosMsg(const LidarDecodedFr
     ++iter_ring_;
     ++iter_timestamp_;   
   }
-  printf("frame:%d points:%u packet:%d start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.points[0].timestamp, frame.points[frame.points_num - 1].timestamp) ;
 
-  // ros_msg.header.stamp.sec = (uint32_t)floor(frame.points[0].timestamp);
-  // ros_msg.header.stamp.nanosec = (uint32_t)round((frame.points[0].timestamp - ros_msg.header.stamp.sec) * 1e9);
-  // printf("%f". this->now());
-  ros_msg.header.stamp = this->node_ptr_->now();
+// Use the current time from the node's clock
+  printf("frame:%d points:%u packet:%d start time:%lf end time:%lf\n",frame.frame_index, frame.points_num, frame.packet_num, frame.points[0].timestamp, frame.points[frame.points_num - 1].timestamp) ;
+  ros_msg.header.stamp.sec = (uint32_t)floor(frame.points[0].timestamp);
+  ros_msg.header.stamp.nanosec = (uint32_t)round((frame.points[0].timestamp - ros_msg.header.stamp.sec) * 1e9);
   ros_msg.header.frame_id = frame_id_;
   return ros_msg;
 }
