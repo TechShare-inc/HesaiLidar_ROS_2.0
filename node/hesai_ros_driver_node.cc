@@ -65,17 +65,28 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "hesai_ros_driver_node", ros::init_options::NoSigintHandler);
 #elif ROS2_FOUND
   rclcpp::init(argc, argv);
+
 #endif
 
-  std::string config_path;
+  
+std::string config_path;
 
 #ifdef RUN_IN_ROS_WORKSPACE
-   config_path = ros::package::getPath("hesai_ros_driver");
+    config_path = ros::package::getPath("hesai_ros_driver");
+    config_path += "/config/config.yaml";
 #else
-   config_path = (std::string)PROJECT_PATH;
+  auto temp_node = std::make_shared<rclcpp::Node>("temp_node");
+
+  // Declare and get the parameter
+  std::string default_config_path = (std::string)PROJECT_PATH + "/config/config.yaml";
+  temp_node->declare_parameter<std::string>("config_path", default_config_path);
+  temp_node->get_parameter("config_path", config_path);
+    // After using temp_node for parameter handling
+  temp_node.reset();
 #endif
 
-   config_path += "/config/config.yaml";
+
+   
 
 #ifdef ROS_FOUND
   ros::NodeHandle priv_hh("~");
@@ -87,11 +98,12 @@ int main(int argc, char** argv)
   }
 #endif
 
-  YAML::Node config;
+    YAML::Node config;
   config = YAML::LoadFile(config_path);
 
 
   std::shared_ptr<NodeManager> demo_ptr = std::make_shared<NodeManager>();
+
   demo_ptr->Init(config);
   demo_ptr->Start();
 
